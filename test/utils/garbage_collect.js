@@ -1,3 +1,5 @@
+require("expose-gc");
+
 // aggressively collects garbage until we fail to improve terminatingIterations
 // times.
 function garbageCollect() {

@@ -42,6 +42,7 @@
 
 .vscode
 jsconfig.json
+/.nyc_output/
 
 test/id_rsa
 test/nodegit-test-rsa
