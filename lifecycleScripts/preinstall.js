@@ -2,7 +2,6 @@ var path = require("path");
 var local = path.join.bind(path, __dirname);
 
 var exec = require(local("../utils/execPromise"));
-var buildFlags = require(local("../utils/buildFlags"));
 
 module.exports = function prepareForBuild() {
   console.log("[nodegit] Running pre-install script");
@@ -25,14 +24,12 @@ module.exports = function prepareForBuild() {
       }
     )
     .then(function() {
-      if (buildFlags.isGitRepo) {
-        var submodules = require(local("submodules"));
-        var generate = require(local("../generate"));
-        return submodules()
-          .then(function() {
-            return generate();
-          });
-      }
+      var submodules = require(local("submodules"));
+      var generate = require(local("../generate"));
+      return submodules()
+        .then(function() {
+          return generate();
+        });
     });
 };
 
