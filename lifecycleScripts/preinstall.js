@@ -3,42 +3,31 @@ var local = path.join.bind(path, __dirname);
 
 var exec = require(local("../utils/execPromise"));
 
-module.exports = function prepareForBuild() {
+module.exports = async function prepareForBuild() {
   console.log("[nodegit] Running pre-install script");
 
-  return exec("npm -v")
-    .then(
-      function(npmVersion) {
-        if (npmVersion.split(".")[0] < 3) {
-          console.log(
-            "[nodegit] npm@2 installed, pre-loading required packages"
-          );
-          return exec("npm install --ignore-scripts");
-        }
+  var npm2workaround = false;
+  try {
+    npm2workaround = (await exec("npm -v")).split(".")[0] < 3;
+  } catch (_) {
+    // We're installing via yarn, so don't care about compability with npm@2
+  }
+  if (npm2workaround) {
+    console.log("[nodegit] npm@2 installed, pre-loading required packages");
+    await exec("npm install --ignore-scripts");
+  }
 
-        return Promise.resolve();
-      },
-      function() {
-        // We're installing via yarn, so don't
-        // care about compability with npm@2
-      }
-    )
-    .then(function() {
-      var submodules = require(local("submodules"));
-      var generate = require(local("../generate"));
-      return submodules()
-        .then(function() {
-          return generate();
-        });
-    });
+  const submodules = require(local("submodules"));
+  const generate = require(local("../generate"));
+  await submodules();
+  await generate();
 };
 
 // Called on the command line
 if (require.main === module) {
-  module.exports()
-    .catch(function(e) {
-      console.error("[nodegit] ERROR - Could not finish preinstall");
-      console.error(e);
-      process.exit(1);
-    });
+  module.exports().catch(function (e) {
+    console.error("[nodegit] ERROR - Could not finish preinstall");
+    console.error(e);
+    process.exit(1);
+  });
 }
